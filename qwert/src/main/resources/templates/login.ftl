@@ -5,7 +5,7 @@
 <@l.login "/login","Log in",false/>
 
 <div class="mt-3">
-<a  href="/registration">Add new user</a>
+<a  href="/registration">Registration</a>
 </div>
 
 </@c.page>

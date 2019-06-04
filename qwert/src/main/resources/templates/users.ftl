@@ -1,5 +1,4 @@
 <#import "parts/common.ftl" as c>
-
 <@c.page>
 
 <form name="tabtext" method="post" action="/users">
@@ -26,7 +25,7 @@
             </tr>
             </thead>
             <tbody>
-    <#list listOfUsers?ifExists as listOfUser>
+    <#list listOfUsers as listOfUser>
     <tr>
         <td width="100">
             <div>
@@ -36,8 +35,10 @@
         <td width="50">${listOfUser.id}</td>
         <td width="150">${listOfUser.username}</td>
         <td width="150">${listOfUser.status}</td>
-        <td width="150"> <#list listOfUser.roles as role>${role}<#sep>, </#list></td>
-        <td ><a href="/users/${listOfUser.id}">edit</a></td>
+        <td width="150">
+            <input type="checkbox" name="${role}" onclick="checking1(this)" id="${listOfUser.id}" ${listOfUser.roles?seq_contains(role)?string("checked","")}  >${role}
+        </td>
+        <td ><a href="/users/${listOfUser.id}">Personal page</a></td>
     </tr>
     <#else >
 No users
@@ -54,6 +55,29 @@ No users
                 else
                     checkboxes[index].checked=false;
             }
+        }
+
+        function checking1(button) {
+            let userObj;
+            if(button.checked===true){
+                userObj = {
+                    "checked": "true",
+                    "id": button.id
+                };
+
+            }
+            else {
+                 userObj = {
+                    "checked": "false",
+                    "id":button.id
+                }
+            }
+            var url = "/test/post";
+            $.ajax({
+                url: url,
+                method: "post",
+                data: userObj
+            });
         }
     </script>
 </form>

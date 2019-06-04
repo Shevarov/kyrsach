@@ -5,6 +5,7 @@ import com.example.qwert.domain.User;
 import com.example.qwert.repos.UserRepository;
 import com.example.qwert.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,9 +13,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import javax.servlet.http.HttpServletRequest;
 import java.security.Principal;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -29,7 +30,8 @@ public class MainController {
     private UserService userService;
 
     @GetMapping("/")
-    public String greeting(Map<String, Object> model) {
+    public String greeting() {
+
         return "greeting";
     }
 
@@ -38,30 +40,33 @@ public class MainController {
     @GetMapping("/users/{user}")
     public String userEditForm(@PathVariable User user, Model model){
         model.addAttribute("user",user);
-        model.addAttribute("roles",Collections.singleton(Role.ADMIN));
+        model.addAttribute("role",Role.ADMIN);
         return "userEdit";
     }
+
     @PostMapping("/userEdit")
-    public String userSave( @RequestParam("userId") User user,@RequestParam String username,@RequestParam Map<String,String> form)
+    public String userSave( @RequestParam("userId") User user,@RequestParam Map<String,String> form)
     {
-        user.setUsername(username);
         Set <String> roles = Arrays.stream(Role.values()).map(Role::name).collect(Collectors.toSet());
-        user.getRoles().clear();
+        user.getRoles().remove(Role.ADMIN);
         for (String key:form.keySet()){
             if(roles.contains(key))
             user.getRoles().add(Role.valueOf(key));
         }
-        user.getRoles().add(Role.valueOf("USER"));
         userRepository.save(user);
         return "redirect:/users";
     }
+
+    @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping("/users")
     public String users(Model model) {
         Iterable<User> messages = userRepository.findAll();
         model.addAttribute("listOfUsers", messages);
+        model.addAttribute("role",Role.ADMIN);
         return "users";
     }
 
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping("/users")
     public String getInputText(@RequestParam(value = "checkboxes", defaultValue = "") String[] pressedCheckbox, Model model,
                                @RequestParam(name = "submit", defaultValue = "") String buttonName, Principal principal
@@ -93,6 +98,7 @@ public class MainController {
         }
         Iterable<User> messages = userRepository.findAll();
         model.addAttribute("listOfUsers", messages);
+        model.addAttribute("role",Role.ADMIN);
         return "users";
     }
 
@@ -103,8 +109,6 @@ public class MainController {
 
     @PostMapping("/registration")
     public String addUser(User user, Map<String, Object> model) {
-
-
         String answer = userService.addUser(user);
         if(answer.equals("Exists")){
             model.put("message", "User exists!");
@@ -114,7 +118,6 @@ public class MainController {
             model.put("message", "Error");
             return "registration";
         }
-
         return "redirect:/login";
     }
 
@@ -128,4 +131,22 @@ public class MainController {
         return "login";
     }
 
+    @PostMapping("/test/post")
+    public String changeCheckboxes(HttpServletRequest req, Principal principal) {
+        String nameUser = principal.getName();
+        User user1 = userRepository.findByUsername(nameUser);
+        String checked = req.getParameter("checked");
+        String id = req.getParameter("id");
+        User user = userRepository.findUserById(Integer.parseInt(id));
+        if(checked.equals("true")){
+            user.getRoles().add(Role.ADMIN);
+        }
+        else{
+            user.getRoles().remove(Role.ADMIN);
+        }
+        userRepository.save(user);
+//        if(user1.getId()==Integer.parseInt(id))
+//            return "redirect:/logout";
+        return "redirect:/users";
+    }
 }
