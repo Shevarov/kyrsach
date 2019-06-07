@@ -22,6 +22,10 @@ public class Chapter {
     }
 
     public Chapter() {
+        id=-1;
+        chapterName="";
+        text="";
+        fileName=null;
     }
 
     public Integer getId() {

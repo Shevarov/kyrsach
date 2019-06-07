@@ -8,6 +8,7 @@ public class Composition {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
     private String title;
+    private String genre;
     private String shortDescription;
     private String tag;
     @ManyToOne(fetch = FetchType.EAGER)
@@ -15,16 +16,16 @@ public class Composition {
     private User author;
 
     public Composition() {
+        id = -1;
+        tag="";
+        title="";
+        genre="";
+        shortDescription="";
     }
 
-    public Composition(String title, String shortDescription, String tag) {
+    public Composition(String title, String genre, String shortDescription, String tag, User author) {
         this.title = title;
-        this.shortDescription = shortDescription;
-        this.tag = tag;
-    }
-
-    public Composition(String title, String shortDescription, String tag, User author) {
-        this.title = title;
+        this.genre = genre;
         this.shortDescription = shortDescription;
         this.tag = tag;
         this.author = author;
@@ -68,5 +69,13 @@ public class Composition {
 
     public void setAuthor(User author) {
         this.author = author;
+    }
+
+    public String getGenre() {
+        return genre;
+    }
+
+    public void setGenre(String genre) {
+        this.genre = genre;
     }
 }
